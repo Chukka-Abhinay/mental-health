@@ -1,0 +1,13 @@
+# CPU-only torch — much smaller download than the CUDA build
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0+cpu
+
+transformers>=5.8.0
+safetensors>=0.7.0
+huggingface_hub>=0.23.0
+tokenizers>=0.19.0
+
+streamlit>=1.35.0
+plotly>=5.20.0
+pandas>=2.0.0
+requests>=2.31.0

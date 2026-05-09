@@ -1,0 +1,4 @@
+[server]
+# Disable file watcher to prevent Streamlit from scanning
+# transformers sub-modules that optionally require torchvision.
+fileWatcherType = "none"

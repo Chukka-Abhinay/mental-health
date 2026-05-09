@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mental-health-bert
+    runtime: python
+    plan: standard        # 2 GB RAM — required to load BERT into memory
+    buildCommand: pip install -r requirements.txt
+    startCommand: >
+      streamlit run streamlit_mental_health_bert.py
+      --server.port $PORT
+      --server.address 0.0.0.0
+      --server.headless true
+      --server.fileWatcherType none
+    envVars:
+      - key: GDRIVE_FILE_ID
+        sync: false                               # set in Render dashboard: the ID from your Google Drive share link
+      - key: PYTHONUNBUFFERED
+        value: "1"
