@@ -1,8 +1,8 @@
 """
 Download model.safetensors from Google Drive if not already present.
-Called automatically at app startup via startup.py or directly.
+Uses gdown which correctly handles Google Drive large-file confirmation pages.
 
-Set these environment variables on your deployment platform:
+Set this environment variable on your deployment platform:
   GDRIVE_FILE_ID  — the file ID from your Google Drive share link
                     e.g. for https://drive.google.com/file/d/ABC123/view
                     the ID is: ABC123
@@ -14,50 +14,50 @@ import sys
 MODEL_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.safetensors")
 GDRIVE_FILE_ID = os.environ.get("GDRIVE_FILE_ID", "")
 
+# Minimum expected size for a valid model file (100 MB).
+# If the downloaded file is smaller, Google Drive returned an HTML page instead.
+MIN_MODEL_BYTES = 100 * 1024 * 1024
+
 
 def download_model():
-    if os.path.isfile(MODEL_FILE):
-        print(f"[startup] model.safetensors already present ({os.path.getsize(MODEL_FILE)//1024//1024} MB), skipping download.")
+    # Skip if a valid model file is already present.
+    if os.path.isfile(MODEL_FILE) and os.path.getsize(MODEL_FILE) > MIN_MODEL_BYTES:
+        print(f"[startup] model.safetensors already present "
+              f"({os.path.getsize(MODEL_FILE) // 1024 // 1024} MB), skipping download.")
         return
+
+    # Remove a corrupt/partial file from a previous failed attempt.
+    if os.path.isfile(MODEL_FILE):
+        print("[startup] Found incomplete model file — removing and re-downloading.")
+        os.remove(MODEL_FILE)
 
     if not GDRIVE_FILE_ID:
-        print("[startup] GDRIVE_FILE_ID not set — skipping model download (will try HF Hub fallback).")
+        print("[startup] GDRIVE_FILE_ID not set — skipping download (HF Hub fallback will be used).")
         return
 
-    print(f"[startup] Downloading model.safetensors from Google Drive (ID={GDRIVE_FILE_ID}) ...")
+    print(f"[startup] Downloading model.safetensors via gdown (ID={GDRIVE_FILE_ID}) ...")
 
     try:
-        import requests
+        import gdown
     except ImportError:
-        print("[startup] ERROR: requests not installed.")
+        print("[startup] ERROR: gdown not installed. Add gdown>=4.7.3 to requirements.txt.")
         sys.exit(1)
 
-    # Google Drive large-file download with confirmation token handling
-    session = requests.Session()
-    url = "https://drive.google.com/uc?export=download"
+    url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+    gdown.download(url, MODEL_FILE, quiet=False, fuzzy=True)
 
-    response = session.get(url, params={"id": GDRIVE_FILE_ID}, stream=True)
+    # Validate the downloaded file is actually the model (not an HTML error page).
+    if not os.path.isfile(MODEL_FILE) or os.path.getsize(MODEL_FILE) < MIN_MODEL_BYTES:
+        size = os.path.getsize(MODEL_FILE) if os.path.isfile(MODEL_FILE) else 0
+        print(f"[startup] ERROR: Downloaded file is only {size // 1024} KB — "
+              f"Google Drive likely returned an HTML error page.\n"
+              f"Make sure the file is shared as 'Anyone with the link' (Viewer).")
+        if os.path.isfile(MODEL_FILE):
+            os.remove(MODEL_FILE)
+        sys.exit(1)
 
-    # Check for virus-scan warning page (large files)
-    token = None
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            token = value
-            break
-
-    if token:
-        response = session.get(url, params={"id": GDRIVE_FILE_ID, "confirm": token}, stream=True)
-
-    # Stream to disk
-    total = 0
-    with open(MODEL_FILE, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8 * 1024 * 1024):  # 8 MB chunks
-            if chunk:
-                f.write(chunk)
-                total += len(chunk)
-                print(f"\r[startup] Downloaded {total // 1024 // 1024} MB ...", end="", flush=True)
-
-    print(f"\n[startup] Download complete: {total // 1024 // 1024} MB saved to {MODEL_FILE}")
+    print(f"[startup] Download complete: "
+          f"{os.path.getsize(MODEL_FILE) // 1024 // 1024} MB saved to {MODEL_FILE}")
 
 
 if __name__ == "__main__":
