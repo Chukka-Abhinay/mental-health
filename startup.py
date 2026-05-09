@@ -44,7 +44,7 @@ def download_model():
         sys.exit(1)
 
     url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
-    gdown.download(url, MODEL_FILE, quiet=False, fuzzy=True)
+    gdown.download(url, MODEL_FILE, quiet=False)
 
     # Validate the downloaded file is actually the model (not an HTML error page).
     if not os.path.isfile(MODEL_FILE) or os.path.getsize(MODEL_FILE) < MIN_MODEL_BYTES:
