@@ -4,7 +4,6 @@ Uses the local fine-tuned BERT model exclusively (no company LLM calls).
 """
 
 import io
-import startup; startup.download_model()  # download model.safetensors if missing
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
