@@ -4,12 +4,6 @@ A real-time mental health sentiment analysis web application powered by a fine-t
 
 ---
 
-## Live Demo
-
-> Deployed on Render — [your-app-url.onrender.com](https://your-app-url.onrender.com)
-
----
-
 ## Features
 
 - **5-class classification** — Anxiety, Depression, Normal, Stress, Suicidal
@@ -87,7 +81,7 @@ Softmax → [anxiety, depression, normal, stress, suicidal]
 
 ### Prerequisites
 - Python 3.10+
-- `model.safetensors` placed in the project root (not included in repo — see below)
+- `model.safetensors` file (489 MB) — **must be placed manually in the project root** (see below)
 
 ### Setup
 
@@ -102,15 +96,22 @@ venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 ```
 
-### Download the model
+### ⚠️ Add the Model File
 
-Set your Hugging Face token and run:
+The model weights file (`model.safetensors`, 489 MB) is **not included** in this repository due to its size.
 
-```bash
-set HF_MODEL_REPO=rohank073/mental-health-bert
-set HF_TOKEN=your_hf_token_here
-python startup.py
+You must place it manually in the project root before running the app:
+
 ```
+mental-health-chatbot/
+├── model.safetensors        ← place it here
+├── tokenizer.json
+├── tokenizer_config.json
+├── streamlit_mental_health_bert.py
+└── ...
+```
+
+Contact the project author to obtain the `model.safetensors` file.
 
 ### Run the app
 
@@ -127,27 +128,11 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 ```
 ├── streamlit_mental_health_bert.py   # Main Streamlit UI
 ├── mental_health_classifier.py       # Model loading & inference
-├── startup.py                        # Downloads model at build time
 ├── tokenizer.json                    # RoBERTa tokenizer vocab
 ├── tokenizer_config.json             # Tokenizer configuration
-├── requirements.txt                  # Python dependencies
-├── render.yaml                       # Render deployment config
-└── .streamlit/
-    └── config.toml                   # Streamlit settings
+├── model.safetensors                 # Fine-tuned model weights (not in repo)
+└── requirements.txt                  # Python dependencies
 ```
-
----
-
-## Deployment
-
-The app is deployed on **Render** using `render.yaml`. The model is hosted on **Hugging Face Hub** and downloaded automatically during the build phase via `startup.py`.
-
-### Environment Variables (set in Render dashboard)
-
-| Variable | Value |
-|---|---|
-| `HF_MODEL_REPO` | `rohank073/mental-health-bert` |
-| `HF_TOKEN` | Your Hugging Face access token |
 
 ---
 
@@ -172,8 +157,7 @@ Evaluated on 1,000 real-world statements:
 
 - **Model:** RoBERTa-base + BiLSTM (PyTorch)
 - **UI:** Streamlit + Plotly
-- **Model Hub:** Hugging Face Hub
-- **Hosting:** Render
+- **Tokenizer:** HuggingFace Transformers
 
 ---
 

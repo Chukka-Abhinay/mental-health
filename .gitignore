@@ -1,7 +1,5 @@
-# Model weights — too large for GitHub (hosted on Google Drive)
+# Model weights
 model.safetensors
-
-# Training artifacts
 *.bin
 
 # Python
@@ -14,6 +12,3 @@ __pycache__/
 venv/
 .venv/
 ml_venv/
-
-# Streamlit secrets
-.streamlit/secrets.toml

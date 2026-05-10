@@ -550,11 +550,19 @@ with tab_single:
             "🆘 Crisis signal":  "I've been thinking that everyone would be better off without me. I don't see a reason to keep going.",
             "😊 Normal post":    "Had a great walk in the park today! The weather was perfect and I finally finished that book I've been reading. Feeling refreshed.",
         }
+        if "prev_sample" not in st.session_state:
+            st.session_state["prev_sample"] = "— Select a sample —"
+
         selected_sample = st.selectbox("Load a sample text:", list(sample_texts.keys()))
+
+        if (selected_sample != "— Select a sample —"
+                and selected_sample != st.session_state["prev_sample"]):
+            st.session_state["single_input"] = sample_texts[selected_sample]
+            st.session_state["prev_sample"] = selected_sample
+            st.rerun()
 
         user_text = st.text_area(
             "Paste or type social media text here:",
-            value=sample_texts[selected_sample],
             height=200,
             placeholder="e.g. 'I feel so overwhelmed lately, can't sleep and just don't care about anything anymore...'",
             key="single_input",
