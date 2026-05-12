@@ -566,33 +566,31 @@ with tab_single:
             on_change=_on_sample_change,
         )
 
-        user_text = st.text_area(
-            "Paste or type social media text here:",
-            value=st.session_state["_text_buf"],
-            height=200,
-            placeholder="e.g. 'I feel so overwhelmed lately, can't sleep and just don't care about anything anymore...'",
-        )
-        # Keep buffer in sync with manual edits
-        st.session_state["_text_buf"] = user_text
-
-        char_count = len(user_text)
-        word_count = len(user_text.split()) if user_text.strip() else 0
-        st.markdown(
-            f'<div class="char-counter">{word_count} words · {char_count} characters</div>',
-            unsafe_allow_html=True,
-        )
-
-        col_btn, col_clr = st.columns([3, 1])
-        with col_btn:
-            analyze_btn = st.button(
-                "🔍 Analyse Sentiment", type="primary",
-                use_container_width=True, disabled=not user_text.strip(),
+        # 1. Wrap the input and button in a form to batch keystrokes
+        with st.form(key="single_analysis_form", clear_on_submit=False):
+            user_text = st.text_area(
+                "Paste or type social media text here:",
+                value=st.session_state["_text_buf"],
+                height=200,
+                placeholder="e.g. 'I feel so overwhelmed lately, can't sleep and just don't care about anything anymore...'",
             )
-        with col_clr:
-            if st.button("🗑️ Clear", use_container_width=True):
-                st.session_state["_text_buf"] = ""
-                st.rerun()
-
+            
+            # The form submit button intercepts the Enter key properly
+            analyze_btn = st.form_submit_button(
+                "🔍 Analyse Sentiment ✨", 
+                type="primary", 
+                use_container_width=True
+            )
+            
+        # 2. Place the clear button outside the form so it works independently
+        if st.button("🗑️ Clear Text", use_container_width=True):
+            st.session_state["_text_buf"] = ""
+            st.rerun()
+            
+        # 3. Sync the text buffer ONLY when they click analyze
+        if analyze_btn:
+            st.session_state["_text_buf"] = user_text
+            
     with col_result:
         st.markdown("#### 📊 Detection Result")
 
